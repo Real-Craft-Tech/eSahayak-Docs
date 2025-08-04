@@ -354,7 +354,6 @@ x-api-key: YOUR_API_KEY_HERE
       "cessAmount": 0,
       "discountedTotal": 1125,
       "actualTotal": 1125,
-      "estimatedProfit": 50,
       "items": [
         {
           "type": "STAMP_AMOUNT",
