@@ -52,7 +52,7 @@ GET /data/states
 | `cessRequired` | boolean | Whether cess amount is mandatory |
 | `propertyAreaRequired` | boolean | Whether property area must be specified |
 | `sroRequired` | boolean | Whether district and SRO must be selected |
-| `isTraditional` | boolean | Whether traditional stamp paper is used |
+| `isTraditional` | boolean | Whether traditional stamp paper is used. Delivery is required for traditional stamp paper in these states. |
 
 ### Usage Tips
 - **Cache this data** - states don't change frequently
@@ -385,4 +385,4 @@ async function fetchWithRetry(url, retries = 3) {
 **Cause**: State doesn't have article configuration
 **Solution**: Contact support - this shouldn't happen for supported states
 
-For more help, contact support@esahayak.io
+For more help, contact [https://esahayak.io/contact-us](https://esahayak.io/contact-us)

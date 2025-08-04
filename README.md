@@ -556,8 +556,6 @@ else:
 
 - **Documentation Issues**: Open an issue on GitHub
 - **API Support**: Contact [https://esahayak.io/contact-us](https://esahayak.io/contact-us)
-- **Status Page**: [https://status.esahayak.io](https://status.esahayak.io)
-
 ---
 
 **Happy Building! 🚀**

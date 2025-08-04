@@ -213,37 +213,22 @@ const results = await processBatchOrders(orders, { batchSize: 10 });
 ## 🆘 Support & Resources
 
 ### 📧 **Contact Support**
-- **API Issues**: support@esahayak.io
-- **Business Inquiries**: sales@esahayak.io
-- **Technical Support**: Available 9 AM - 6 PM IST
-
-### 📚 **Additional Resources**
-- **GitHub Examples**: [github.com/esahayak/api-examples](https://github.com/esahayak/api-examples)
-- **Postman Collection**: [Download Collection](https://api.esahayak.io/postman)
-- **OpenAPI Spec**: [Download Spec](https://api.esahayak.io/openapi.json)
-- **Status Page**: [status.esahayak.io](https://status.esahayak.io)
-
-### 🤝 **Community**
-- **Developer Forum**: [forum.esahayak.io](https://forum.esahayak.io)
-- **Discord Channel**: [discord.gg/esahayak](https://discord.gg/esahayak)
-- **Stack Overflow**: Tag your questions with `esahayak-api`
+- **API Issues**: [https://esahayak.io/contact-us](https://esahayak.io/contact-us)
 
 ---
 
 ## 🔄 Changelog & Updates
 
-### **v1.0.0** - January 2024
+### **v1.0.0** - August 2025
 - ✅ Initial API release
 - ✅ Data APIs for reference information
 - ✅ Stamp order creation with validation
 - ✅ Webhook notifications
-- ✅ Multi-language examples
 
 ### **Coming Soon**
-- 🔜 Order status tracking API
-- 🔜 Bulk order operations
-- 🔜 Advanced webhook filtering
-- 🔜 GraphQL endpoint
+- 🔜 Simple API Docs
+- 🔜 Postman Collection
+- 🔜 Multiple Webhooks
 
 ---
 
@@ -251,8 +236,8 @@ const results = await processBatchOrders(orders, { batchSize: 10 });
 
 Have ideas for improving the API? We'd love to hear from you!
 
-- **Submit issues**: [GitHub Issues](https://github.com/esahayak/api-docs/issues)
-- **Feature requests**: support@esahayak.io
+- **Submit issues**: [GitHub Issues](https://github.com/Real-Craft-Tech/eSahayak-Docs/issues)
+- **Feature requests**: [https://esahayak.io/contact-us](https://esahayak.io/contact-us)
 - **API improvements**: Include your use case and expected behavior
 
 ---

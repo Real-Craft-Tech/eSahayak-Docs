@@ -19,6 +19,7 @@ Get real-time notifications when stamp orders are processed, completed, or encou
 Webhooks allow your application to receive real-time notifications about stamp order status changes. Instead of polling our API for updates, we'll send HTTP POST requests to your specified endpoint whenever important events occur.
 
 ### Benefits
+
 - **Real-time updates** - Get notified immediately when orders are processed
 - **Reduced API calls** - No need to poll for status updates
 - **Better user experience** - Notify users instantly when stamps are ready
@@ -44,6 +45,7 @@ https://your-domain.com/webhooks/esahayak
 ### 2. Endpoint Requirements
 
 Your webhook endpoint must:
+
 - **Accept POST requests** with JSON payload
 - **Respond with 2xx status code** (200, 201, 204) within 10 seconds
 - **Use HTTPS** (HTTP not supported)
@@ -53,10 +55,10 @@ Your webhook endpoint must:
 
 ```javascript
 // Express.js example
-app.post('/webhooks/esahayak', express.json(), (req, res) => {
+app.post("/webhooks/esahayak", express.json(), (req, res) => {
   const event = req.body;
 
-  console.log('Received webhook:', event.type);
+  console.log("Received webhook:", event.type);
 
   try {
     // Process the webhook event
@@ -65,8 +67,8 @@ app.post('/webhooks/esahayak', express.json(), (req, res) => {
     // Return success response
     res.status(200).json({ received: true });
   } catch (error) {
-    console.error('Webhook processing failed:', error);
-    res.status(500).json({ error: 'Processing failed' });
+    console.error("Webhook processing failed:", error);
+    res.status(500).json({ error: "Processing failed" });
   }
 });
 ```
@@ -87,7 +89,7 @@ Triggered when a stamp is successfully generated and uploaded.
 Triggered when stamp generation fails due to technical issues.
 
 **When**: Government portal issues, technical errors
-**Action**: Retry logic, notify user of delay
+**Action**: Retry logic, notify user of delay, credits will be added back to the workspace.
 
 ### `order.delivered`
 
@@ -98,10 +100,10 @@ Triggered when physical stamp delivery is completed (if delivery was requested).
 
 ### `order.cancelled`
 
-Triggered when an order is cancelled (manual intervention or technical issues).
+Triggered when an order is cancelled (manual intervention or technical issues), before stamp is generated.
 
 **When**: Order cannot be processed, refund initiated
-**Action**: Process refund, notify user
+**Action**: Process refund, notify user, credits will be added back to the workspace.
 
 ---
 
@@ -133,12 +135,12 @@ All webhook payloads follow this structure:
 
 ### Common Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | string | Unique webhook event ID |
-| `type` | string | Event type (see above) |
-| `created_at` | string | ISO 8601 timestamp |
-| `data` | object | Event-specific payload |
+| Field        | Type   | Description             |
+| ------------ | ------ | ----------------------- |
+| `id`         | string | Unique webhook event ID |
+| `type`       | string | Event type (see above)  |
+| `created_at` | string | ISO 8601 timestamp      |
+| `data`       | object | Event-specific payload  |
 
 ---
 
@@ -160,12 +162,6 @@ X-eSahayak-Delivery: webhook_12345
 ### Signature Verification
 
 **Coming Soon**: We'll add HMAC signature verification for enhanced security.
-
-### IP Allowlisting
-
-Webhook requests come from these IP ranges:
-- `52.66.123.0/24` (Primary)
-- `13.127.45.0/24` (Backup)
 
 ### Best Practices
 
@@ -211,27 +207,27 @@ ngrok http 3000
 
 ```javascript
 // Simple webhook testing server
-const express = require('express');
+const express = require("express");
 const app = express();
 
 app.use(express.json());
 
-app.post('/webhooks/esahayak', (req, res) => {
-  console.log('\n🔔 Webhook Received:');
-  console.log('Type:', req.body.type);
-  console.log('Order ID:', req.body.data?.order?.id);
-  console.log('Timestamp:', req.body.created_at);
-  console.log('Full payload:', JSON.stringify(req.body, null, 2));
+app.post("/webhooks/esahayak", (req, res) => {
+  console.log("\n🔔 Webhook Received:");
+  console.log("Type:", req.body.type);
+  console.log("Order ID:", req.body.data?.order?.id);
+  console.log("Timestamp:", req.body.created_at);
+  console.log("Full payload:", JSON.stringify(req.body, null, 2));
 
   res.status(200).json({
     received: true,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
 app.listen(3000, () => {
-  console.log('🎣 Webhook server listening on port 3000');
-  console.log('Use ngrok to expose: ngrok http 3000');
+  console.log("🎣 Webhook server listening on port 3000");
+  console.log("Use ngrok to expose: ngrok http 3000");
 });
 ```
 
@@ -381,22 +377,24 @@ app.listen(3000, () => {
 ### Database Integration (MongoDB)
 
 ```javascript
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 // Order schema
 const orderSchema = new mongoose.Schema({
   esahayakOrderId: String,
   status: String,
-  webhookEvents: [{
-    type: String,
-    data: Object,
-    receivedAt: Date
-  }],
+  webhookEvents: [
+    {
+      type: String,
+      data: Object,
+      receivedAt: Date,
+    },
+  ],
   createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
+  updatedAt: { type: Date, default: Date.now },
 });
 
-const Order = mongoose.model('Order', orderSchema);
+const Order = mongoose.model("Order", orderSchema);
 
 // Webhook handler with database persistence
 async function handleStampUploaded(data) {
@@ -405,12 +403,12 @@ async function handleStampUploaded(data) {
   // Find and update the order
   const order = await Order.findOne({ esahayakOrderId: orderId });
   if (order) {
-    order.status = 'COMPLETED';
+    order.status = "COMPLETED";
     order.updatedAt = new Date();
     order.webhookEvents.push({
-      type: 'stamp.uploaded',
+      type: "stamp.uploaded",
       data: data,
-      receivedAt: new Date()
+      receivedAt: new Date(),
     });
 
     await order.save();
@@ -427,17 +425,17 @@ async function handleStampUploaded(data) {
 ### Real-time Updates (WebSocket)
 
 ```javascript
-const WebSocket = require('ws');
+const WebSocket = require("ws");
 const wss = new WebSocket.Server({ port: 8080 });
 
 // Store client connections by user ID
 const userConnections = new Map();
 
-wss.on('connection', (ws, req) => {
+wss.on("connection", (ws, req) => {
   const userId = extractUserIdFromRequest(req);
   userConnections.set(userId, ws);
 
-  ws.on('close', () => {
+  ws.on("close", () => {
     userConnections.delete(userId);
   });
 });
@@ -448,13 +446,15 @@ async function notifyUserRealtime(orderId, message, eventType) {
   if (order && order.userId) {
     const userWs = userConnections.get(order.userId);
     if (userWs && userWs.readyState === WebSocket.OPEN) {
-      userWs.send(JSON.stringify({
-        type: 'order_update',
-        orderId: orderId,
-        status: eventType,
-        message: message,
-        timestamp: new Date().toISOString()
-      }));
+      userWs.send(
+        JSON.stringify({
+          type: "order_update",
+          orderId: orderId,
+          status: eventType,
+          message: message,
+          timestamp: new Date().toISOString(),
+        }),
+      );
     }
   }
 }
@@ -464,10 +464,10 @@ async function handleStampUploaded(data) {
   const orderId = data.order.id;
 
   // Update database
-  await updateOrderStatus(orderId, 'COMPLETED');
+  await updateOrderStatus(orderId, "COMPLETED");
 
   // Send real-time update
-  await notifyUserRealtime(orderId, 'Your stamp is ready!', 'completed');
+  await notifyUserRealtime(orderId, "Your stamp is ready!", "completed");
 
   // Send email notification
   await sendEmailNotification(orderId);
@@ -481,17 +481,20 @@ async function handleStampUploaded(data) {
 ### Common Issues
 
 #### ❌ Webhook not received
+
 - **Check URL**: Ensure webhook URL is correct and publicly accessible
 - **Check firewall**: Ensure your server accepts incoming connections
 - **Check logs**: Look for any server errors or timeouts
 - **Test manually**: Use curl to test your endpoint
 
 #### ❌ Webhook timeout
+
 - **Response time**: Ensure your endpoint responds within 10 seconds
 - **Async processing**: Move heavy processing to background jobs
 - **Database connections**: Ensure database isn't blocking
 
 #### ❌ Duplicate events
+
 - **Implement idempotency**: Use webhook ID to detect duplicates
 - **Database constraints**: Use unique constraints where appropriate
 
@@ -499,19 +502,19 @@ async function handleStampUploaded(data) {
 
 ```javascript
 // Webhook logger middleware
-app.use('/webhooks', (req, res, next) => {
+app.use("/webhooks", (req, res, next) => {
   console.log(`📝 Webhook ${req.method} ${req.path}`);
-  console.log('Headers:', req.headers);
-  console.log('Body:', req.body);
+  console.log("Headers:", req.headers);
+  console.log("Body:", req.body);
 
   // Continue to actual handler
   next();
 });
 
 // Webhook response logger
-app.use('/webhooks', (req, res, next) => {
+app.use("/webhooks", (req, res, next) => {
   const originalSend = res.send;
-  res.send = function(body) {
+  res.send = function (body) {
     console.log(`📤 Response ${res.statusCode}: ${body}`);
     return originalSend.call(this, body);
   };
@@ -522,12 +525,12 @@ app.use('/webhooks', (req, res, next) => {
 ### Health Check Endpoint
 
 ```javascript
-app.get('/webhooks/health', (req, res) => {
+app.get("/webhooks/health", (req, res) => {
   res.status(200).json({
-    status: 'healthy',
+    status: "healthy",
     timestamp: new Date().toISOString(),
-    server: 'webhook-handler',
-    version: '1.0.0'
+    server: "webhook-handler",
+    version: "1.0.0",
   });
 });
 ```
@@ -552,10 +555,10 @@ const metrics = {
   total: 0,
   success: 0,
   errors: 0,
-  averageResponseTime: 0
+  averageResponseTime: 0,
 };
 
-app.post('/webhooks/esahayak', async (req, res) => {
+app.post("/webhooks/esahayak", async (req, res) => {
   const startTime = Date.now();
   metrics.total++;
 
@@ -567,7 +570,7 @@ app.post('/webhooks/esahayak', async (req, res) => {
     res.status(200).json({ received: true });
   } catch (error) {
     metrics.errors++;
-    res.status(500).json({ error: 'Processing failed' });
+    res.status(500).json({ error: "Processing failed" });
   } finally {
     const responseTime = Date.now() - startTime;
     metrics.averageResponseTime =
@@ -576,11 +579,11 @@ app.post('/webhooks/esahayak', async (req, res) => {
 });
 
 // Metrics endpoint
-app.get('/metrics', (req, res) => {
+app.get("/metrics", (req, res) => {
   res.json({
     ...metrics,
-    successRate: (metrics.success / metrics.total * 100).toFixed(2) + '%',
-    errorRate: (metrics.errors / metrics.total * 100).toFixed(2) + '%'
+    successRate: ((metrics.success / metrics.total) * 100).toFixed(2) + "%",
+    errorRate: ((metrics.errors / metrics.total) * 100).toFixed(2) + "%",
   });
 });
 ```
@@ -589,11 +592,11 @@ app.get('/metrics', (req, res) => {
 
 ## 🆘 Support
 
-- **Webhook Issues**: support@esahayak.io
+- **Webhook Issues**: [https://esahayak.io/contact-us](https://esahayak.io/contact-us)
 - **Documentation**: [Full API Docs](README.md)
-- **Status Page**: [status.esahayak.io](https://status.esahayak.io)
 
 For webhook-specific support, include:
+
 1. Webhook URL being used
 2. Expected vs actual behavior
 3. Relevant server logs

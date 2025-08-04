@@ -109,7 +109,6 @@ If everything works correctly, you'll get:
 ## 📞 Need Help?
 
 - **Documentation**: [Full API Docs](README.md)
-- **Email**: support@esahayak.io
-- **Status**: [status.esahayak.io](https://status.esahayak.io)
+- **Email**: [https://esahayak.io/contact-us](https://esahayak.io/contact-us)
 
 Happy coding! 🚀

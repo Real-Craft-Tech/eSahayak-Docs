@@ -937,5 +937,3 @@ describe('eSahayak API Integration', () => {
   });
 });
 ```
-
-For more examples and advanced patterns, visit our [GitHub repository](https://github.com/esahayak/api-examples).
