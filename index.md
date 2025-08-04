@@ -149,13 +149,13 @@ const results = await Promise.allSettled(
 - **Rate limiting** to prevent abuse
 
 ### 🔄 **Reliability**
-- **99.9% uptime SLA** for critical operations
+
 - **Automatic retries** for transient failures
 - **Graceful degradation** during maintenance
 - **Comprehensive monitoring** and alerting
 
 ### 📊 **Monitoring**
-- **Real-time status page** at [status.esahayak.io](https://status.esahayak.io)
+
 - **API response time monitoring**
 - **Error rate tracking**
 - **Capacity planning** for peak loads
