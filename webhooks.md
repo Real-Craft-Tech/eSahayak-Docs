@@ -25,6 +25,17 @@ Webhooks allow your application to receive real-time notifications about stamp o
 - **Better user experience** - Notify users instantly when stamps are ready
 - **Automation** - Trigger downstream processes automatically
 
+### 🏆 Standard Webhooks Compliance
+
+Our webhooks implementation follows the [**Standard Webhooks**](https://standardwebhooks.com) specification v1.0.0, ensuring:
+
+- **🔒 Cryptographic Security**: HMAC-SHA256 signatures prevent tampering
+- **🔄 Interoperability**: Compatible with Standard Webhooks libraries and tools
+- **📚 Consistency**: Familiar format for developers experienced with webhooks
+- **🛡️ Best Practices**: Built-in replay attack protection and secure verification
+
+This means you can use existing Standard Webhooks libraries in any language for easy integration and signature verification.
+
 ---
 
 ## ⚙️ Setup
@@ -42,7 +53,18 @@ In your eSahayak dashboard:
 https://your-domain.com/webhooks/esahayak
 ```
 
-### 2. Endpoint Requirements
+### 2. Generate Webhook Signing Secret
+
+For secure webhook verification:
+
+1. In the same **API Access** section, find **Webhook Signing Secret**
+2. Click **Generate Webhook Secret**
+3. Copy the secret (starts with `whsec_`) and store it securely
+4. Use this secret to verify webhook signatures in your code
+
+⚠️ **Important**: Keep your webhook secret secure and never expose it in client-side code or public repositories.
+
+### 3. Endpoint Requirements
 
 Your webhook endpoint must:
 
@@ -51,7 +73,7 @@ Your webhook endpoint must:
 - **Use HTTPS** (HTTP not supported)
 - **Be publicly accessible** (no authentication required for the endpoint itself)
 
-### 3. Example Endpoint Implementation
+### 4. Example Endpoint Implementation
 
 ```javascript
 // Express.js example
@@ -109,38 +131,61 @@ Triggered when an order is cancelled (manual intervention or technical issues), 
 
 ## 📦 Payload Format
 
-All webhook payloads follow this structure:
+All webhook payloads follow the [Standard Webhooks](https://standardwebhooks.com) specification:
 
 ```json
 {
-  "id": "webhook_unique_id",
   "type": "stamp.uploaded",
-  "created_at": "2024-01-15T10:30:00Z",
+  "timestamp": "2024-01-15T10:30:00Z",
   "data": {
     "order": {
       "id": "order_12345",
+      "title": "Property Registration Stamp",
       "status": "COMPLETED",
-      "created_at": "2024-01-15T10:00:00Z"
+      "type": "STAMP",
+      "created_at": "2024-01-15T10:00:00Z",
+      "final_pdf_url": "https://cdn.esahayak.io/stamps/order_12345.pdf"
     },
     "stamp_request": {
       "id": "stamp_67890",
-      "state": "Assam",
       "amount": 1000,
-      "article_code": "AS-RG-4",
-      "provider": "SHCIL"
-    }
+      "cess_amount": 50,
+      "govt_surcharge": 10,
+      "first_party": {
+        "name": "John Doe",
+        "phone": "+91 9876543210"
+      },
+      "second_party": {
+        "name": "Jane Smith",
+        "phone": "+91 9876543211"
+      },
+      "purpose": "Property registration agreement",
+      "provider": "SHCIL",
+      "status": "COMPLETED",
+      "certificate_number": "AS123456789"
+    },
+    "stamp_url": "https://cdn.esahayak.io/stamps/stamp_67890.pdf"
   }
 }
 ```
 
-### Common Fields
+### Standard Webhooks Fields
 
-| Field        | Type   | Description             |
-| ------------ | ------ | ----------------------- |
-| `id`         | string | Unique webhook event ID |
-| `type`       | string | Event type (see above)  |
-| `created_at` | string | ISO 8601 timestamp      |
-| `data`       | object | Event-specific payload  |
+| Field       | Type   | Description                                    |
+| ----------- | ------ | ---------------------------------------------- |
+| `type`      | string | Event type (e.g., "stamp.uploaded")           |
+| `timestamp` | string | ISO 8601 timestamp of when event occurred     |
+| `data`      | object | Event-specific payload containing order, stamp request, and stamp URL |
+
+### Metadata (Headers)
+
+The webhook ID and delivery timestamp are sent as HTTP headers, not in the payload:
+
+| Header              | Description                           |
+| ------------------- | ------------------------------------- |
+| `webhook-id`        | Unique identifier for this webhook   |
+| `webhook-timestamp` | Unix timestamp of delivery attempt   |
+| `webhook-signature` | HMAC signature for verification      |
 
 ---
 
@@ -148,20 +193,92 @@ All webhook payloads follow this structure:
 
 ### Request Headers
 
-We include these headers with every webhook request:
+We include these headers with every webhook request according to the [Standard Webhooks](https://standardwebhooks.com) specification:
 
 ```http
 POST /webhooks/esahayak HTTP/1.1
 Host: your-domain.com
 Content-Type: application/json
 User-Agent: eSahayak-Webhooks/1.0
-X-eSahayak-Event: stamp.uploaded
-X-eSahayak-Delivery: webhook_12345
+webhook-id: msg_2KWPBgLlAfxdpx2AI54pPJ85f4W
+webhook-timestamp: 1674087231
+webhook-signature: v1,K5oZfzN95Z9UVu1EsfQmfVNQhnkZ2pj9o9NDN/H/pI4=
 ```
 
 ### Signature Verification
 
-**Coming Soon**: We'll add HMAC signature verification for enhanced security.
+We implement cryptographic signatures according to the **Standard Webhooks** specification for maximum security and interoperability.
+
+#### How Signatures Work
+
+1. **Message Construction**: We create a signing message by concatenating:
+   ```
+   {webhook-id}.{webhook-timestamp}.{JSON payload}
+   ```
+
+2. **HMAC-SHA256 Signing**: The message is signed using HMAC-SHA256 with your workspace's webhook secret
+
+3. **Signature Format**: The signature is prefixed with `v1,` to indicate the signing version:
+   ```
+   v1,<base64_encoded_signature>
+   ```
+
+#### Setting Up Signature Verification
+
+1. **Generate Webhook Secret**: In your workspace settings, generate a webhook signing secret
+2. **Store Secret Securely**: The secret starts with `whsec_` followed by a base64-encoded key
+3. **Verify Signatures**: Use the secret to verify incoming webhook signatures
+
+#### Example Verification (Node.js)
+
+```javascript
+const crypto = require('crypto');
+
+function verifyWebhookSignature(secret, headers, rawBody) {
+  const webhookId = headers['webhook-id'];
+  const webhookTimestamp = headers['webhook-timestamp'];
+  const webhookSignature = headers['webhook-signature'];
+
+  // Extract the secret key (remove 'whsec_' prefix)
+  const secretKey = secret.substring(6);
+
+  // Create the signing message
+  const message = `${webhookId}.${webhookTimestamp}.${rawBody}`;
+
+  // Calculate expected signature
+  const expectedSignature = crypto
+    .createHmac('sha256', Buffer.from(secretKey, 'base64'))
+    .update(message, 'utf8')
+    .digest('base64');
+
+  const expectedHeader = `v1,${expectedSignature}`;
+
+  // Use constant-time comparison to prevent timing attacks
+  return crypto.timingSafeEqual(
+    Buffer.from(webhookSignature),
+    Buffer.from(expectedHeader)
+  );
+}
+```
+
+#### Security Best Practices
+
+1. **Always Verify Signatures**: Never process webhooks without signature verification
+2. **Check Timestamp**: Reject webhooks older than 5 minutes to prevent replay attacks
+3. **Use Constant-Time Comparison**: Prevents timing attack vulnerabilities
+4. **Store Secrets Securely**: Treat webhook secrets like any other cryptographic material
+5. **Regenerate on Compromise**: Regenerate secrets immediately if compromised
+
+#### Timestamp Verification
+
+```javascript
+function isTimestampValid(webhookTimestamp, toleranceInSeconds = 300) {
+  const timestamp = parseInt(webhookTimestamp);
+  const now = Math.floor(Date.now() / 1000);
+
+  return Math.abs(now - timestamp) <= toleranceInSeconds;
+}
+```
 
 ### Best Practices
 
